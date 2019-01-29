@@ -52,39 +52,61 @@ switch (action) {
     case "do-what-it-says":
         doIt();
         break;
+
+    default:
+        myLogger("Incorrect command. Choices are concert-this, spotify-this-song, movie-this or do-what-it-says");
+        break;
 }
 
 function concertThis(artist) {
 
-    axios.get("https://rest.bandsintown.com/artists/" + artist + "/events?app_id=codingbootcamp").then(
-        function (response) {
+    if (artist === "")
+        myLogger("Need to input an artist");
+    else {
+        
+        axios.get("https://rest.bandsintown.com/artists/" + artist + "/events?app_id=codingbootcamp")
+            .then(function (response) {
 
-            var numEvents = response.data.length;
-            for (var i = 0; i < numEvents; i++) {
-                myLogger("* Name of the venue: " + response.data[i].venue.name);
-                if (response.data[i].venue.region === "")
-                    myLogger("* Venue location: " + response.data[i].venue.city + ", " + response.data[i].venue.country);
-                else
-                    myLogger("* Venue location: " + response.data[i].venue.city + ", " + response.data[i].venue.region);
-                var formattedDate = moment(response.data[i].datetime).format("MM/DD/YYYY");
-                myLogger("* Date of the Event: " + formattedDate);
-                myLogger("\t\n")
-            }
-        }
-    );
+                var numEvents = response.data.length;
+                if (numEvents === 0)
+                    myLogger("No events found for " + artist);
+                else {
+
+
+                    for (var i = 0; i < numEvents; i++) {
+                        myLogger("* Name of the venue: " + response.data[i].venue.name);
+                        if (response.data[i].venue.region === "")
+                            myLogger("* Venue location: " + response.data[i].venue.city + ", " + response.data[i].venue.country);
+                        else
+                            myLogger("* Venue location: " + response.data[i].venue.city + ", " + response.data[i].venue.region);
+                        var formattedDate = moment(response.data[i].datetime).format("MM/DD/YYYY");
+                        myLogger("* Date of the Event: " + formattedDate);
+                        myLogger("\t\n")
+                    }
+                }
+            })
+            .catch(function (error) {
+                myLogger(error);
+            });
+
+    }
 
 }
 
 function spotifySong(song) {
 
     spotify.search({ type: 'track', query: song }, function (err, data) {
+
         if (err) {
             return myLogger('Error occurred: ' + err);
         }
 
+
         var numSongs = data.tracks.items.length;
+
         for (var i = 0; i < numSongs; i++) {
             var songReturned = data.tracks.items[i].name;
+            // Eliminate songs returned that don't match the name
             if (songReturned.toLowerCase().indexOf(song.toLowerCase()) !== -1) {
 
                 myLogger("* Artist(s): " + data.tracks.items[i].artists[0].name);
@@ -98,14 +120,14 @@ function spotifySong(song) {
             }
 
         }
-    });
+    })
+
 }
 
 function movieThis(movieTitle) {
 
-
-    axios.get("http://www.omdbapi.com/?t=" + movieTitle + "&y=&plot=short&apikey=trilogy").then(
-        function (response) {
+    axios.get("http://www.omdbapi.com/?t=" + movieTitle + "&y=&plot=short&apikey=trilogy")
+        .then(function (response) {
             myLogger("* Title: " + response.data.Title);
             myLogger("* Year: " + response.data.Year);
             myLogger("* IMDB Rating: " + response.data.imdbRating);
@@ -122,8 +144,11 @@ function movieThis(movieTitle) {
             myLogger("* Plot: " + response.data.Plot);
             myLogger("* Actors: " + response.data.Actors)
 
-        }
-    );
+        })
+
+        .catch(function (error) {
+            myLogger(error);
+        });
 
 }
 
@@ -153,8 +178,12 @@ function doIt() {
 
                 movieThis(dataArr[1]);
                 break;
-
+            default:
+                myLogger("Incorrect command. Choices are concert-this, spotify-this-song, movie-this or do-what-it-says");
+                break;
         }
+
+
     });
 }
 
